@@ -1,26 +1,13 @@
-from typing import List, Optional
 from fastapi import FastAPI, Response, status, HTTPException
-from fastapi.params import Body, Depends
-from pydantic import BaseModel, Field
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
-from dotenv import load_dotenv
-import time
+from fastapi.params import Depends
 from sqlalchemy.orm import session
 from .database import engine, get_db
 from . import models
+from .schemas import PostCreate, PostResponse
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-class Post(BaseModel):
-    title : str = Field(title="Post title")
-    content : str
-    published : bool = True
-
 
 # PSYCOPG2 connection
 """ while True:
@@ -51,19 +38,17 @@ class Post(BaseModel):
 async def hello():
     return {"message": "Hello api"}
 
-
-
-@app.get("/posts")
+@app.get("/posts", response_model=list[PostResponse])
 async def get_posts(db: session = Depends(get_db)):
     # PSYCOPG2 implementation of get_posts
     """cursor.execute("SELECT * FROM posts")
     posts = cursor.fetchall() """
     
     posts = db.query(models.Post).all()
-    return{"data":posts}
+    return posts
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_post(post: Post, db: session = Depends(get_db)):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
+async def create_post(post: PostCreate, db: session = Depends(get_db)):
     # PSYCOPG2 implementation of create_post
     """cursor.execute('''INSERT INTO posts (title, content, published) 
                    VALUES (%s,%s,%s) RETURNING * ''', (new_post.title, new_post.content, new_post.published))
@@ -74,9 +59,9 @@ async def create_post(post: Post, db: session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
-@app.get('/posts/{id}') 
+@app.get('/posts/{id}', response_model=PostResponse) #response_model_include/exclude= {} or []
 async def get_post(id: int, db: session = Depends(get_db)):
     # PSYCOPG2 implementation of get_post
     """cursor.execute('''SELECT * FROM posts WHERE id = %s''', (str(id),))
@@ -89,11 +74,11 @@ async def get_post(id: int, db: session = Depends(get_db)):
                             detail=f"Post with id {id} was not found")
         """ response.status_code = status.HTTP_404_NOT_FOUND
         return {"message": f"Post with id {id} was not found"} """
-    return {"data": post}
+    return post
 
 
-@app.put("/posts/{id}")
-async def update_post(id:int, post: Post, db: session = Depends(get_db)):
+@app.put("/posts/{id}", response_model=PostResponse)
+async def update_post(id:int, post: PostCreate, db: session = Depends(get_db)):
     # PSYCOPG2 implementation of update_post
     """     cursor.execute('''UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s
                     RETURNING *''',
@@ -108,7 +93,7 @@ async def update_post(id:int, post: Post, db: session = Depends(get_db)):
         
     post_query.update(post.dict(), synchronize_session=False)
     db.commit()
-    return{"data": post_query.first()}
+    return post_query.first()
 
 
 @app.delete("/posts/{id}")
