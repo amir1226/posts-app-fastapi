@@ -2,8 +2,10 @@ from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Depends
 from sqlalchemy.orm import session
 from .database import engine, get_db
-from . import models
-from .schemas import PostCreate, PostResponse
+from . import models, utils
+from .schemas import PostCreate, PostResponse, CreateUser, UserResponse
+
+
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -113,6 +115,31 @@ async def delete_post(id:int, db: session = Depends(get_db)):
     
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+async def register_user(user: CreateUser, db: session = Depends(get_db)):
+    
+    #Hash password
+    hashed_pwd = utils.hash(user.password)
+    user.password = hashed_pwd
+
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user
+   
+@app.get('/users/{id}', response_model=UserResponse)
+async def get_user(id: int, db: session = Depends(get_db)):
+    user = db.query(models.User).filter_by(id=id).first()
+    
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"user with id {id} not found")
+    
+    return user
+    
+    
 # Used with in memory data
 '''
 def find_post(id : int, iterator:List):
