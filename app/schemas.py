@@ -4,7 +4,7 @@ from datetime import datetime
 class PostBase(BaseModel):
     title : str = Field(title="Post title")
     content : str    
-    published : bool
+    published : bool = True
 
 class PostCreate(PostBase):
     pass
