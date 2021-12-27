@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 
@@ -25,3 +26,10 @@ class UserResponse(BaseModel):
     created_at: datetime
     class Config:
         orm_mode = True  
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    
+class TokenData(BaseModel):
+    id: Optional[str]
