@@ -2,7 +2,7 @@ from fastapi import Response, status, HTTPException, APIRouter
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
-from .. import models
+from .. import models, oauth2
 from ..schemas import PostCreate, PostResponse
 
 router=APIRouter(
@@ -20,7 +20,8 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
-async def create_post(post: PostCreate, db: Session = Depends(get_db)):
+async def create_post(post: PostCreate, db: Session = Depends(get_db), 
+                      current_user : int = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of create_post
     """cursor.execute('''INSERT INTO posts (title, content, published) 
                    VALUES (%s,%s,%s) RETURNING * ''', (new_post.title, new_post.content, new_post.published))
@@ -50,7 +51,8 @@ async def get_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=PostResponse)
-async def update_post(id:int, post: PostCreate, db: Session = Depends(get_db)):
+async def update_post(id:int, post: PostCreate, db: Session = Depends(get_db), 
+                      current_user : int = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of update_post
     """     cursor.execute('''UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s
                     RETURNING *''',
@@ -69,7 +71,8 @@ async def update_post(id:int, post: PostCreate, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}")
-async def delete_post(id:int, db: Session = Depends(get_db)):
+async def delete_post(id:int, db: Session = Depends(get_db),
+                      current_user : int = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of delete_post
     """ cursor.execute(''' DELETE FROM posts WHERE id = %s RETURNING *''', (str(id),))
     deleted_post = cursor.fetchone() """
