@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import Response, status, HTTPException, APIRouter
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
@@ -11,12 +12,14 @@ router=APIRouter(
 )
 
 @router.get("/", response_model=list[PostResponse])
-async def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
+async def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user),
+                    limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # PSYCOPG2 implementation of get_posts
     """cursor.execute("SELECT * FROM posts")
     posts = cursor.fetchall() """
     
-    posts = db.query(models.Post).all()
+    ## contains is case sensitive == "like" in postgres, I changed to "ilike"
+    posts = db.query(models.Post).filter(models.Post.title.ilike(f'%{search}%')).limit(limit).offset(skip).all() 
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
