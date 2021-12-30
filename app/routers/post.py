@@ -11,7 +11,7 @@ router=APIRouter(
 )
 
 @router.get("/", response_model=list[PostResponse])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of get_posts
     """cursor.execute("SELECT * FROM posts")
     posts = cursor.fetchall() """
@@ -21,7 +21,7 @@ async def get_posts(db: Session = Depends(get_db)):
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
 async def create_post(post: PostCreate, db: Session = Depends(get_db), 
-                      current_user : int = Depends(oauth2.get_current_user)):
+                      current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of create_post
     """cursor.execute('''INSERT INTO posts (title, content, published) 
                    VALUES (%s,%s,%s) RETURNING * ''', (new_post.title, new_post.content, new_post.published))
@@ -35,7 +35,7 @@ async def create_post(post: PostCreate, db: Session = Depends(get_db),
     return new_post
 
 @router.get('/{id}', response_model=PostResponse) #response_model_include/exclude= {} or []
-async def get_post(id: int, db: Session = Depends(get_db)):
+async def get_post(id: int, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of get_post
     """cursor.execute('''SELECT * FROM posts WHERE id = %s''', (str(id),))
     post = cursor.fetchone() """
@@ -46,13 +46,13 @@ async def get_post(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post with id {id} was not found")
         """ response.status_code = status.HTTP_404_NOT_FOUND
-        return {"message": f"Post with id {id} was not found"} """
+        return {"message": f"Post with id {id} was not found"} """  
     return post
 
 
 @router.put("/{id}", response_model=PostResponse)
 async def update_post(id:int, post: PostCreate, db: Session = Depends(get_db), 
-                      current_user : int = Depends(oauth2.get_current_user)):
+                      current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of update_post
     """     cursor.execute('''UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s
                     RETURNING *''',
@@ -77,7 +77,7 @@ async def update_post(id:int, post: PostCreate, db: Session = Depends(get_db),
 
 @router.delete("/{id}")
 async def delete_post(id:int, db: Session = Depends(get_db),
-                      current_user : int = Depends(oauth2.get_current_user)):
+                      current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of delete_post
     """ cursor.execute(''' DELETE FROM posts WHERE id = %s RETURNING *''', (str(id),))
     deleted_post = cursor.fetchone() """
