@@ -1,15 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
+from .config import settings
 
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(BASEDIR, '.env'))    
-DB_USERNAME = os.getenv('DATABASE_USER') 
-DB_PASSWORD = os.getenv('DATABASE_PSW')
-
-SQLALCHEMY_DATABASE_URL = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@localhost:5435/fastapi'
+SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_user}:{settings.database_psw}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
