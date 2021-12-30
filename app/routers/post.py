@@ -28,7 +28,7 @@ async def create_post(post: PostCreate, db: Session = Depends(get_db),
     post = cursor.fetchone()
     conn.commit() """
     # new_post = models.Post(title=new_post.title, content=new_post.content, published=new_post.published)
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(**post.dict(), owner_id=current_user.id)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
