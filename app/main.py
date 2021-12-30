@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from .database import engine, get_db
-from . import models, utils
+from . import models
 from .routers import post, user, auth
+from .models import Post
 
-
-# models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
