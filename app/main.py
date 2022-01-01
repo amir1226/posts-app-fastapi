@@ -3,7 +3,8 @@ from .database import engine
 from . import models
 from .routers import post, user, auth, vote
 
-models.Base.metadata.create_all(bind=engine)
+# SQLAlchemy engine to create tables, replace by alembic migrations
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
