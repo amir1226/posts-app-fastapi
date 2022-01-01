@@ -2,24 +2,32 @@ from typing import Optional
 from fastapi import Response, status, HTTPException, APIRouter
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.functions import func
 from ..database import get_db
 from .. import models, oauth2
-from ..schemas import PostCreate, PostResponse
+from ..schemas import PostCreate, PostOut, PostResponse
 
 router=APIRouter(
     prefix="/posts",
     tags=['posts']
 )
 
-@router.get("/", response_model=list[PostResponse])
+@router.get("/", response_model=list[PostOut])
 async def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user),
                     limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # PSYCOPG2 implementation of get_posts
     """cursor.execute("SELECT * FROM posts")
     posts = cursor.fetchall() """
     
-    ## contains is case sensitive == "like" in postgres, I changed to "ilike"
-    posts = db.query(models.Post).filter(models.Post.title.ilike(f'%{search}%')).limit(limit).offset(skip).all() 
+    ## 'contains' function is case sensitive == "like" in postgres, I changed to "ilike"
+    ##posts = db.query(models.Post).filter(
+    ##    models.Post.title.ilike(f'%{search}%')).limit(limit).offset(skip).all() 
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(
+            models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(
+            models.Post.id).filter(
+            models.Post.title.ilike(f'%{search}%')).limit(limit).offset(skip).all() 
+        
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
@@ -37,14 +45,16 @@ async def create_post(post: PostCreate, db: Session = Depends(get_db),
     db.refresh(new_post)
     return new_post
 
-@router.get('/{id}', response_model=PostResponse) #response_model_include/exclude= {} or []
+@router.get('/{id}', response_model=PostOut) #response_model_include/exclude= {} or []
 async def get_post(id: int, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     # PSYCOPG2 implementation of get_post
     """cursor.execute('''SELECT * FROM posts WHERE id = %s''', (str(id),))
     post = cursor.fetchone() """
     
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(
+            models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(
+            models.Post.id).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=f"Post with id {id} was not found")

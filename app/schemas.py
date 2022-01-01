@@ -34,7 +34,11 @@ class PostResponse(PostBase):
     owner: UserResponse
     class Config:
         orm_mode = True
-        
+
+class PostOut(BaseModel):
+    Post: PostResponse
+    votes: int
+
 class CreateUser(BaseModel):
     email : EmailStr
     password : str
