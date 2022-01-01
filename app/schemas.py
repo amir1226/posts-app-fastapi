@@ -2,6 +2,8 @@ from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 
+from pydantic.types import conint
+
 
 class UserResponse(BaseModel):
     id: int
@@ -37,3 +39,6 @@ class CreateUser(BaseModel):
     email : EmailStr
     password : str
     
+class Vote(BaseModel):
+    post_id : int
+    dir: conint(ge=0,le=1)
