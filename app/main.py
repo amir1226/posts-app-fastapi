@@ -26,4 +26,4 @@ app.include_router(vote.router)
 
 @app.get("/")
 async def hello():
-    return {"message": "Hello fastapi learner!!"}
+    return {"message": "Hello fastapi learner!"}
