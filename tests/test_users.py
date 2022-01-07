@@ -1,25 +1,11 @@
-import pytest
 from app.oauth2 import ALGORITHM, SECRET_KEY
 import app.schemas as schemas
-from .database import client, session
 from jose import jwt
 
 # def test_root(client):
 #     response = client.get('/')
 #     assert response.json().get('message') == 'Hello fastapi learner!'
 #     assert response.status_code == 200
-
-@pytest.fixture()
-def test_user(client):
-    user_data = {"email": "pepe2@test-email.com",
-                 "password": "pepe123"}
-    response = client.post('/users/', json=user_data)
-    assert response.status_code == 201
-    
-    new_user = response.json()
-    new_user['password'] = user_data['password']
-    
-    return new_user
     
 def test_create_user(client):
     email = 'pepe2@test-email.com'
