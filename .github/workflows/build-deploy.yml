@@ -1,0 +1,14 @@
+name: Build and Deploy Code
+
+on: 
+  push:
+    branches:
+      - "master"
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pulling git repository
+        uses: actions/checkout@v2
+      - name: hello crack
+        run: echo "Hello crack!"
