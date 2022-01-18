@@ -6,6 +6,18 @@ on:
       - "master"
 jobs:
   job1:
+    environment:
+      name: testing
+    env:
+      DATABASE_HOSTNAME: ${{secrets.DATABASE_HOSTNAME}}
+      DATABASE_PORT: ${{secrets.DATABASE_PORT}}
+      DATABASE_PSW: ${{secrets.DATABASE_PSW}}
+      DATABASE_NAME: ${{secrets.DATABASE_NAME}}
+      DATABASE_USER: ${{secrets.DATABASE_USER}}
+      SECRET_KEY: ${{secrets.SECRET_KEY}}
+      ALGORITHM: ${{secrets.ALGORITHM}}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repository
@@ -21,4 +33,3 @@ jobs:
       - name: test with pytest
         run: |
           pip install pytest
-          pytest
